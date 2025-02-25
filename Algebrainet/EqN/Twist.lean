@@ -31,12 +31,12 @@ def twist₁_succ : EqN S # (twist₁ (n + 1)) (cat # (mix swap (wires n)) (mix 
   rename_i n ih
   apply trans
   apply trans cast_
-  apply cat₁
+  apply cat₀
   apply trans
-  apply mix₁
+  apply mix₀
   assumption
   apply trans
-  apply mix₂
+  apply mix₁
   apply symm wire_cat
   simp
   apply symm exch
@@ -48,9 +48,9 @@ def twist₁_succ : EqN S # (twist₁ (n + 1)) (cat # (mix swap (wires n)) (mix 
   apply cat_
   apply mix_assoc
   apply trans
-  apply mix₁
+  apply mix₀
   apply trans (symm (wires_mix_wires (a := 1) (b := n)))
-  apply mix₁
+  apply mix₀
   apply wires₁
   simp
   apply mix_assoc
@@ -71,10 +71,10 @@ def untwist₁_succ : EqN S # (untwist₁ (n + 1)) (cat # (mix (wires n) swap) (
   apply trans
   apply cat_
   apply trans
-  apply mix₂
+  apply mix₁
   apply cast_
   apply trans
-  apply mix₁
+  apply mix₀
   apply symm wires₁
   apply wires_mix_wires (x := 2)
   simp
@@ -86,7 +86,7 @@ def untwist₁_succ : EqN S # (untwist₁ (n + 1)) (cat # (mix (wires n) swap) (
   apply trans
   apply cat_
   apply nil_mix
-  apply mix₁
+  apply mix₀
   apply cast_
   simp
   apply cat_wires
@@ -103,10 +103,10 @@ def untwist₁_succ : EqN S # (untwist₁ (n + 1)) (cat # (mix (wires n) swap) (
   apply trans
   apply symm exch
   simp
-  apply cat₁
+  apply cat₀
   apply trans
   apply symm mix_assoc
-  apply mix₁
+  apply mix₀
   apply refl
   repeat simp
   apply refl
@@ -115,9 +115,9 @@ def untwist₁_succ : EqN S # (untwist₁ (n + 1)) (cat # (mix (wires n) swap) (
   apply cat_assoc
   repeat simp
   apply cat_
-  apply mix₁
+  apply mix₀
   apply trans
-  apply mix₁
+  apply mix₀
   apply symm wires₁
   apply wires_mix_wires
   simp
@@ -148,17 +148,17 @@ def twist₁_untwist₁ : EqN S # (cat # (twist₁ n) (untwist₁ n)) (wires (n 
   simp
   apply trans cat_assoc
   apply trans
-  apply cat₂
+  apply cat₁
   apply trans (symm cat_assoc)
   apply trans
-  apply cat₁
+  apply cat₀
   apply trans exch
   apply trans
   apply mix_
   apply wires_cat
   apply swap_swap
   apply trans
-  apply mix₂
+  apply mix₁
   apply symm wires₂
   apply wires_mix_wires (x := n + 2)
   repeat simp
@@ -185,7 +185,7 @@ def twist_zero : EqN S # (twist n 0) (wires n) := by
   apply wires_mix_wires (x := n + 1)
   simp
   apply trans
-  apply mix₁
+  apply mix₀
   exact symm wires₁
   apply wires_mix_wires (x := n + 1)
   repeat simp
@@ -207,14 +207,14 @@ def succ_twist : EqN S # (twist (a + 1) b) (cat # (mix (wires a) (twist₁ b)) (
   apply trans
   apply cat_
   apply nil_mix
-  apply mix₁ cast_
+  apply mix₀ cast_
   simp
   apply cat_wires
 
   rename_i a ih
   apply trans cast_
   apply trans
-  apply cat₁
+  apply cat₀
   apply trans
   apply mix_
   apply symm wire_cat
@@ -225,8 +225,8 @@ def succ_twist : EqN S # (twist (a + 1) b) (cat # (mix (wires a) (twist₁ b)) (
   apply trans cat_assoc
   apply cat_
   apply trans (symm mix_assoc)
-  apply mix₁
-  apply trans (mix₁ (symm wires₁))
+  apply mix₀
+  apply trans (mix₀ (symm wires₁))
   apply wires_mix_wires (x := a + 1)
   simp
   apply trans
@@ -250,8 +250,8 @@ def twist_succ : EqN S # (twist a (b + 1)) (cat # (mix (twist a b) wire) (mix (w
   apply symm
   apply trans
   apply cat_
-  apply mix₁ (cast_)
-  apply trans (mix₂ cast_)
+  apply mix₀ (cast_)
+  apply trans (mix₁ cast_)
   apply wires_mix_wires (x := b + 1)
   repeat simp
   apply wires_cat
@@ -261,54 +261,54 @@ def twist_succ : EqN S # (twist a (b + 1)) (cat # (mix (twist a b) wire) (mix (w
   apply trans
   apply succ_twist
   apply trans
-  apply cat₂
-  apply mix₁
+  apply cat₁
+  apply mix₀
   apply ih
   simp
   apply trans
-  apply cat₂
+  apply cat₁
   apply trans
-  apply mix₂
+  apply mix₁
   apply symm wire_cat
   simp
   apply symm exch
   repeat simp
   apply trans (symm cat_assoc)
   apply trans
-  apply cat₁
+  apply cat₀
   apply trans
-  apply cat₁
+  apply cat₀
   apply trans
   apply mix_
   apply symm (wires_cat (n := a))
   simp
   apply cast_
   apply trans (symm exch)
-  apply cat₂
+  apply cat₁
   apply trans (symm mix_assoc)
-  apply mix₁ (wires_mix_wires (x := a + b))
+  apply mix₀ (wires_mix_wires (x := a + b))
   repeat simp
   apply trans
-  apply cat₂
+  apply cat₁
   apply mix_assoc
   simp
   apply trans cat_assoc
   apply trans
-  apply cat₂
+  apply cat₁
   apply trans exch
   apply trans
   apply mix_
   apply trans wires_cat
   apply symm (cat_wires (n := a + b))
   repeat simp
-  apply trans (cat₂ (symm wires₂))
+  apply trans (cat₁ (symm wires₂))
   apply trans cat_wires
   apply symm (wires_cat (n := 2))
   repeat simp
   apply symm exch
   repeat simp
   apply trans (symm (cat_assoc))
-  apply cat₁
+  apply cat₀
   apply trans
   apply cat_
   apply symm mix_assoc
@@ -317,8 +317,8 @@ def twist_succ : EqN S # (twist a (b + 1)) (cat # (mix (twist a b) wire) (mix (w
   apply trans exch
   apply mix_
   apply trans
-  apply cat₂
-  apply mix₂
+  apply cat₁
+  apply mix₁
   apply wires₁
   simp
   apply symm
@@ -326,10 +326,10 @@ def twist_succ : EqN S # (twist a (b + 1)) (cat # (mix (twist a b) wire) (mix (w
   apply wire_cat
   repeat simp
   apply trans cat_assoc
-  apply cat₂
-  apply trans
   apply cat₁
-  apply mix₁
+  apply trans
+  apply cat₀
+  apply mix₀
   apply symm (wires_mix_wires (a := b) (b := a))
   repeat simp
   apply trans
@@ -363,10 +363,10 @@ def twist_twist : EqN S # (cat # (twist a b) (twist b a)) (wires (a + b)) := by
   simp
   apply trans cat_assoc
   apply trans
-  apply cat₂
+  apply cat₁
   apply trans (symm cat_assoc)
   apply trans
-  apply cat₁
+  apply cat₀
   apply trans exch
   apply mix_
   assumption

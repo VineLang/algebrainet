@@ -6,7 +6,3 @@ package "algebrainet" where
 
 lean_lib «Algebrainet» where
   -- add library configuration options here
-
-@[default_target]
-lean_exe "algebrainet" where
-  root := `Main

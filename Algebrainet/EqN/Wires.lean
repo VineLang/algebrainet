@@ -10,9 +10,9 @@ variable
 set_option autoImplicit false
 
 def wires₁ : EqN (S := S) # (wires 1) wire := nil_mix
-def wires₂ : EqN (S := S) # (wires 2) (mix wire wire) := mix₁ wires₁
-def cat_wire {h : _} : EqN S # (cat h a wire) a := trans (cat₂ (h₃ := h) (symm wires₁)) (cat_wires)
-def wire_cat {h : _} : EqN S # (cat h wire a) a := trans (cat₁ (h₃ := h) (symm wires₁)) (wires_cat)
+def wires₂ : EqN (S := S) # (wires 2) (mix wire wire) := mix₀ wires₁
+def cat_wire {h : _} : EqN S # (cat h a wire) a := trans (cat₁ (h₂ := h) (symm wires₁)) (cat_wires)
+def wire_cat {h : _} : EqN S # (cat h wire a) a := trans (cat₀ (h₂ := h) (symm wires₁)) (wires_cat)
 def wires_ {n₁ n₂ : Nat} : {h : n₁ = n₂} -> EqN (S := S) # (wires n₁) (wires n₂)
   | rfl => refl
 
@@ -31,7 +31,7 @@ def wires_mix_wires {a b x : Nat} {h : a + b = x} : EqN (S := S) # (mix (wires a
   apply symm
   exact mix_assoc
   apply trans
-  apply mix₁
+  apply mix₀
   apply ih
   rfl
   apply wires_
@@ -39,6 +39,6 @@ def wires_mix_wires {a b x : Nat} {h : a + b = x} : EqN (S := S) # (mix (wires a
 
 def wire_mix_wires {a : Nat} : EqN (S := S) # (mix wire (wires a)) (wires (a + 1)) := by
   apply trans
-  apply mix₁ (symm wires₁)
+  apply mix₀ (symm wires₁)
   apply wires_mix_wires
   simp

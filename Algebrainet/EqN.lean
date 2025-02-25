@@ -10,7 +10,7 @@ inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) �
     {xᵢ xₒ : Nat} -> {x : Net S xᵢ xₒ} ->
     {yᵢ yₒ : Nat} -> {y : Net S yᵢ yₒ} ->
     {zᵢ zₒ : Nat} -> {z : Net S zᵢ zₒ} ->
-    {h₁ h₂ : _} -> EqN S h₁ x y -> EqN S h₂ y z ->
+    {h₀ h₁ : _} -> EqN S h₀ x y -> EqN S h₁ y z ->
     EqN S # x z
   | symm :
     {xᵢ xₒ : Nat} -> {x : Net S xᵢ xₒ} ->
@@ -47,8 +47,8 @@ inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) �
     {xᵢ xₒ : Nat} -> {x : Net S xᵢ xₒ} ->
     {yᵢ yₒ : Nat} -> {y : Net S yᵢ yₒ} ->
     {zᵢ zₒ : Nat} -> {z : Net S zᵢ zₒ} ->
-    {h₁ h₂ h₃ h₄ : _} ->
-    EqN S # (cat h₁ (cat h₂ x y) z) (cat h₃ x (cat h₄ y z))
+    {h₀ h₁ h₂ h₃ : _} ->
+    EqN S # (cat h₀ (cat h₁ x y) z) (cat h₂ x (cat h₃ y z))
 
   | swap_swap : EqN S # (cat # swap swap) (mix wire wire)
   | untwist_cup : EqN S # (cat # cup swap) cup
@@ -69,28 +69,28 @@ inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) �
     {yᵢ yₒ : Nat} -> {y : Net S yᵢ yₒ} ->
     {zᵢ zₒ : Nat} -> {z : Net S zᵢ zₒ} ->
     {wᵢ wₒ : Nat} -> {w : Net S wᵢ wₒ} ->
-    {h₁ h₂ h₃ : _} ->
-    EqN S # (cat h₁ (mix x y) (mix z w)) (mix (cat h₂ x z) (cat h₃ y w))
+    {h₀ h₁ h₂ : _} ->
+    EqN S # (cat h₀ (mix x y) (mix z w)) (mix (cat h₁ x z) (cat h₂ y w))
 
   | cat_ :
     {aᵢ aₒ : Nat} -> {a : Net S aᵢ aₒ} ->
     {bᵢ bₒ : Nat} -> {b : Net S bᵢ bₒ} ->
     {cᵢ cₒ : Nat} -> {c : Net S cᵢ cₒ} ->
     {dᵢ dₒ : Nat} -> {d : Net S dᵢ dₒ} ->
-    {h₁ h₂ : _} ->
-    EqN S h₁ a c ->
-    EqN S h₂ b d ->
-    {h₃ h₄ : _} ->
-    EqN S # (cat h₃ a b) (cat h₄ c d)
+    {h₀ h₁ : _} ->
+    EqN S h₀ a c ->
+    EqN S h₁ b d ->
+    {h₂ h₃ : _} ->
+    EqN S # (cat h₂ a b) (cat h₃ c d)
 
   | mix_ :
     {aᵢ aₒ : Nat} -> {a : Net S aᵢ aₒ} ->
     {bᵢ bₒ : Nat} -> {b : Net S bᵢ bₒ} ->
     {cᵢ cₒ : Nat} -> {c : Net S cᵢ cₒ} ->
     {dᵢ dₒ : Nat} -> {d : Net S dᵢ dₒ} ->
-    {h₁ h₂ : _} ->
-    EqN S h₁ a c ->
-    EqN S h₂ b d ->
+    {h₀ h₁ : _} ->
+    EqN S h₀ a c ->
+    EqN S h₁ b d ->
     EqN S # (mix a b) (mix c d)
 
 namespace EqN
@@ -102,7 +102,7 @@ variable
   {cᵢ cₒ : Nat} {c : Net S cᵢ cₒ}
   {dᵢ dₒ : Nat} {d : Net S dᵢ dₒ}
 
-def cat₁ {h₁ : _} (e : EqN S h₁ a b) {h₂ h₃ : _} : EqN S # (cat h₂ a c) (cat h₃ b c) := cat_ e refl
-def cat₂ {h₁ : _} (e : EqN S h₁ a b) {h₂ h₃ : _} : EqN S # (cat h₂ c a) (cat h₃ c b) := cat_ refl e
-def mix₁ {h : _} (e : EqN S h a b) : EqN S # (mix a c) (mix b c) := mix_ e refl
-def mix₂ {h : _} (e : EqN S h a b) : EqN S # (mix c a) (mix c b) := mix_ refl e
+def cat₀ {h₀ : _} (e : EqN S h₀ a b) {h₁ h₂ : _} : EqN S # (cat h₁ a c) (cat h₂ b c) := cat_ e refl
+def cat₁ {h₀ : _} (e : EqN S h₀ a b) {h₁ h₂ : _} : EqN S # (cat h₁ c a) (cat h₂ c b) := cat_ refl e
+def mix₀ {h : _} (e : EqN S h a b) : EqN S # (mix a c) (mix b c) := mix_ e refl
+def mix₁ {h : _} (e : EqN S h a b) : EqN S # (mix c a) (mix c b) := mix_ refl e
