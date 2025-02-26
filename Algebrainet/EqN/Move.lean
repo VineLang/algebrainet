@@ -229,7 +229,7 @@ def twist_nets
 
 def cap_cup : EqN S # (cat # (mix wire cup) (mix cap wire)) wire := by
   apply trans; apply cat₀; .
-    apply trans (mix_ wire_cat.symm untwist_cup.symm)
+    apply trans (mix_ wire_cat.symm cup_swap.symm)
     apply exch.symm
     repeat simp
   simp
@@ -240,7 +240,7 @@ def cap_cup : EqN S # (cat # (mix wire cup) (mix cap wire)) wire := by
   apply trans cat_assoc
   apply trans; apply cat₁; .
     apply trans exch
-    apply (mix_ wire_cat untwist_cap)
+    apply (mix_ wire_cat swap_cap)
     repeat simp
   simp
   apply cup_cap

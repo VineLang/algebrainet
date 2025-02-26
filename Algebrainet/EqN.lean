@@ -46,8 +46,8 @@ inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) �
     EqN S # (cat h₀ (cat h₁ x y) z) (cat h₂ x (cat h₃ y z))
 
   | swap_swap : EqN S # (cat # swap swap) (mix wire wire)
-  | untwist_cup : EqN S # (cat # cup swap) cup
-  | untwist_cap : EqN S # (cat # swap cap) cap
+  | cup_swap : EqN S # (cat # cup swap) cup
+  | swap_cap : EqN S # (cat # swap cap) cap
 
   | move_cup : EqN S # (cat # (mix cup wire) (mix wire swap)) (cat # (mix wire cup) (mix swap wire))
   | move_cap : EqN S # (cat # (mix wire swap) (mix cap wire)) (cat # (mix swap wire) (mix wire cap))

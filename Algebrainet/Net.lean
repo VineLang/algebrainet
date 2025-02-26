@@ -15,11 +15,11 @@ inductive Net (S : System) : Nat -> Nat -> Type
   | nil : Net S 0 0
   | wire : Net S 1 1
   | swap : Net S 2 2
-  | mix : {i₁ i₂ o₁ o₂ : Nat} -> Net S i₁ o₁ -> Net S i₂ o₂ -> Net S (i₁ + i₂) (o₁ + o₂)
-  | cat : {i₁ o₁ i₂ o₂ : Nat} -> (o₁ = i₂) -> Net S i₁ o₁ -> Net S i₂ o₂ -> Net S i₁ o₂
   | cup : Net S 0 2
   | cap : Net S 2 0
   | agent : (a : S.Agent) -> Net S (S.arity a) 1
+  | mix : {i₁ i₂ o₁ o₂ : Nat} -> Net S i₁ o₁ -> Net S i₂ o₂ -> Net S (i₁ + i₂) (o₁ + o₂)
+  | cat : {i₁ o₁ i₂ o₂ : Nat} -> (o₁ = i₂) -> Net S i₁ o₁ -> Net S i₂ o₂ -> Net S i₁ o₂
 
 open Net
 
