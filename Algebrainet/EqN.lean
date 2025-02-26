@@ -18,11 +18,6 @@ inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) �
     {h : _} -> EqN S h x y ->
     EqN S # y x
 
-  | cast_ :
-    {i₁ o₁ i₂ o₂ : Nat} -> {x : Net S i₁ o₁} ->
-    {h : (i₁ = i₂) ∧ (o₁ = o₂)} ->
-    EqN S # (.cast h x) x
-
   | mix_nil :
     {xᵢ xₒ : Nat} -> {x : Net S xᵢ xₒ} ->
     EqN S # (mix x nil) x
@@ -54,13 +49,10 @@ inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) �
   | untwist_cup : EqN S # (cat # cup swap) cup
   | untwist_cap : EqN S # (cat # swap cap) cap
 
-  | cup_swap : EqN S # (cat # (mix cup wire) (mix wire swap)) (cat # (mix wire cup) (mix swap wire))
-  | cap_swap : EqN S # (cat # (mix wire swap) (mix cap wire)) (cat # (mix swap wire) (mix wire cap))
-
-  | mix_twist :
-    {xᵢ xₒ : Nat} -> {x : Net S xᵢ xₒ} ->
-    {yᵢ yₒ : Nat} -> {y : Net S yᵢ yₒ} ->
-    EqN S # (cat # (mix x y) (twist xₒ yₒ)) (cat # (twist xᵢ yᵢ) (mix y x))
+  | move_cup : EqN S # (cat # (mix cup wire) (mix wire swap)) (cat # (mix wire cup) (mix swap wire))
+  | move_cap : EqN S # (cat # (mix wire swap) (mix cap wire)) (cat # (mix swap wire) (mix wire cap))
+  | move_swap : EqN S # (cat # (mix wire swap) (cat # (mix swap wire) (mix wire swap))) (cat # (mix swap wire) (cat # (mix wire swap) (mix swap wire)))
+  | move_agent {A : S.Agent} : EqN S # (cat # ((agent A).mix wire) swap) (cat # (twist (S.arity A) 1) (wire.mix (agent A)))
 
   | cup_cap : EqN S # (cat # (mix cup wire) (mix wire cap)) wire
 
@@ -94,6 +86,10 @@ inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) �
     EqN S # (mix a b) (mix c d)
 
 namespace EqN
+
+def cast_ {i₁ o₁ i₂ o₂ : Nat} {x : Net S i₁ o₁} :
+  {h : (i₁ = i₂) ∧ (o₁ = o₂)} -> EqN S # (castₙ h x) x
+  | (And.intro rfl rfl) => refl
 
 variable
   {S : System}
