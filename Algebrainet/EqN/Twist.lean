@@ -191,7 +191,7 @@ def twist_n_s : EqN S # (twist a (b + 1)) (cat # (mix (twist a b) wire) (mix (wi
       simp
       apply trans cat_assoc.symm
       apply cat₀
-      apply trans (cat_ mix_assoc.symm (mix_assoc (z := wire)).symm)
+      apply trans (cat_ mix_assoc.symm (mix_assoc (c := wire)).symm)
       apply trans exch
       apply mix_
       . apply trans (cat₁ (mix₁ wires₁))
