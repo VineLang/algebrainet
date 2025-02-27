@@ -1,5 +1,5 @@
 import Algebrainet.Net
-import Algebrainet.EqN
+import Algebrainet.Eqv
 
 open Net
 
@@ -9,7 +9,7 @@ structure Rules (S : System) where
   defined : S.Agent -> S.Agent -> Prop
   defined_symm : {a b : S.Agent} -> defined a b -> defined b a
   rule : {a b : S.Agent} -> defined a b -> Net S ((S.arity a) + (S.arity b)) 0
-  rule_symm : {a b : S.Agent} -> (d : defined a b) -> EqN S # (rule d) (rule (defined_symm d))
+  rule_symm : {a b : S.Agent} -> (d : defined a b) -> Eqv S # (rule d) (rule (defined_symm d))
 
 def pair {S : System} (a b : S.Agent) : Net S ((S.arity a) + (S.arity b)) 0 :=
   cat # (mix (agent a) (agent b)) cap
@@ -45,38 +45,34 @@ inductive Vee (R : Rules S) {i o : Nat} (b c : Net S i o) : Prop
   | eq : (b = c) -> Vee R b c
   | rd : {d : Net S i o} -> Rd S R b d -> Rd S R c d -> Vee R b c
 
-abbrev NEq {S : System} {aᵢ aₒ bᵢ bₒ : Nat} (a : Net S aᵢ aₒ) (b : Net S bᵢ bₒ) : Prop
+abbrev EqN {S : System} {aᵢ aₒ bᵢ bₒ : Nat} (a : Net S aᵢ aₒ) (b : Net S bᵢ bₒ) : Prop
   := Eq (α := Σ i o, Net S i o) ⟨aᵢ, aₒ, a⟩ ⟨bᵢ, bₒ, b⟩
 
 def extract_agent {i o : Nat} : (n : Net S i o) -> Option S.Agent
   | agent a => some a
   | _ => none
 
-namespace NEq
+namespace EqN
 
 variable
   {aᵢ aₒ bᵢ bₒ : Nat} {a : Net S aᵢ aₒ} {b : Net S bᵢ bₒ}
 
 def congr
   {α : Type}
-  (h : NEq a b)
+  (h : EqN a b)
   (f : {i o : Nat} -> Net S i o -> α)
   : f a = f b
 := Eq.rec (motive := fun b _ => f a = f b.snd.snd) rfl h
 
-@[simp] def eqᵢ (h : NEq a b) : aᵢ = bᵢ := Eq.rec (motive := fun b _ => aᵢ = b.fst) rfl h
-@[simp] def eqₒ (h : NEq a b) : aₒ = bₒ := Eq.rec (motive := fun b _ => aₒ = b.snd.fst) rfl h
+@[simp] def eqᵢ (h : EqN a b) : aᵢ = bᵢ := Eq.rec (motive := fun b _ => aᵢ = b.fst) rfl h
+@[simp] def eqₒ (h : EqN a b) : aₒ = bₒ := Eq.rec (motive := fun b _ => aₒ = b.snd.fst) rfl h
 
-end NEq
-
-def extract_pair {i o : Nat} : (n : Net S i o) -> Option (S.Agent × S.Agent)
-  | cat _ (mix (agent a) (agent b)) cap => some (a, b)
-  | _ => none
+end EqN
 
 abbrev SNet (S : System) := Σ i o, Net S i o
 
-def extract_cat {i o : Nat} : (n : Net S i o) -> Option (SNet S × SNet S)
-  | cat _ a b => some (⟨_, _, a⟩, ⟨_, _, b⟩)
+def unpair {i o : Nat} : (n : Net S i o) -> Option (S.Agent × S.Agent)
+  | cat _ (mix (agent a) (agent b)) cap => some (a, b)
   | _ => none
 
 def uncat₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
@@ -127,14 +123,14 @@ def rd_perf_conf_ {S : System} {R : Rules S}
   {i₀ o₀ i₁ o₁ : Nat}
   {a₀ b : Net S i₀ o₀} {a₁ c : Net S i₁ o₁}
   (r₀ : Rd S R a₀ b) (r₁ : Rd S R a₁ c)
-  (hₐ : NEq a₀ a₁)
+  (hₐ : EqN a₀ a₁)
   : Vee R (castₙ ⟨hₐ.eqᵢ, hₐ.eqₒ⟩ b) c
 := by
   induction r₀ generalizing i₁ o₁ a₁ c r₁ with
   | pair x₀ y₀ d₀ =>
     cases r₁ with
     | pair x₁ y₁ d₁ =>
-      cases hₐ.congr extract_pair
+      cases hₐ.congr unpair
       apply Vee.eq
       simp
     | mix₀ | mix₁ => repeat cases hₐ.congr kind

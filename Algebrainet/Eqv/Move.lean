@@ -1,8 +1,8 @@
 import Algebrainet.Net
-import Algebrainet.EqN.Twist
+import Algebrainet.Eqv.Twist
 
 open Net
-namespace EqN
+namespace Eqv
 
 variable {S : System}
 
@@ -11,7 +11,7 @@ set_option autoImplicit false
 def twist_net_wire
   {aᵢ aₒ: Nat}
   {A : Net S aᵢ aₒ}
-: EqN S #
+: Eqv S #
   (cat # (mix A wire) (twist aₒ 1))
   (cat # (twist aᵢ 1) (mix wire A))
 := by
@@ -154,7 +154,7 @@ def twist_net_wire
 def twist_net_wires
   {aᵢ aₒ b : Nat}
   {A : Net S aᵢ aₒ}
-: EqN S #
+: Eqv S #
   (cat # (mix A (wires b)) (twist aₒ b))
   (cat # (twist aᵢ b) (mix (wires b) A))
 := by
@@ -191,7 +191,7 @@ def twist_net_wires
 
 def twist_wires_net
   {a bᵢ bₒ : Nat} {B : Net S bᵢ bₒ}
-  : EqN S #
+  : Eqv S #
     (cat # (mix (wires a) B) (twist a bₒ))
     (cat # (twist a bᵢ) (mix B (wires a)))
 := by
@@ -213,7 +213,7 @@ def twist_wires_net
 def twist_nets
   {aᵢ aₒ : Nat} {A : Net S aᵢ aₒ}
   {bᵢ bₒ : Nat} {B : Net S bᵢ bₒ}
-  : EqN S #
+  : Eqv S #
     (cat # (mix A B) (twist aₒ bₒ))
     (cat # (twist aᵢ bᵢ) (mix B A))
 := by
@@ -227,7 +227,7 @@ def twist_nets
   apply cat₁ (symm down_up)
   repeat simp
 
-def cap_cup : EqN S # (cat # (mix wire cup) (mix cap wire)) wire := by
+def cap_cup : Eqv S # (cat # (mix wire cup) (mix cap wire)) wire := by
   apply trans; apply cat₀; .
     apply trans (mix_ wire_cat.symm cup_swap.symm)
     apply exch.symm
