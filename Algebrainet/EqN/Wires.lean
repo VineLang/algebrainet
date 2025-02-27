@@ -18,38 +18,23 @@ def wire_cat {h : _} : EqN S # (cat h wire A) A := trans (cat₀ (h₂ := h) (sy
 def wires_ : {h : n₁ = n₂} -> EqN S # (wires n₁) (wires n₂)
   | rfl => refl
 
-def wires_mix_wires {h : a + b = n} : EqN S # (mix (wires a) (wires b)) (wires n) := by
-  revert n
-  induction b
-  intro x h
-  apply trans
-  exact mix_nil
-  apply wires_
-  assumption
-  rename_i ih
-  simp only [wires]
-  intro x h
-  apply trans
-  apply symm
-  exact mix_assoc
-  apply trans
-  apply mix₀
-  apply ih
-  rfl
-  apply wires_
-  simp [*]
+def wires_mix_wires_ {h : a + b = n} : EqN S # (mix (wires a) (wires b)) (wires n) := by
+  induction b generalizing n with
+  | zero => subst h; apply mix_nil
+  | succ b ih =>
+    apply trans mix_assoc.symm
+    apply trans (mix₀ (ih (n := a + b)))
+    apply wires_
+    repeat simp [*]
 
-def wire_mix_wires : EqN S # (mix wire (wires a)) (wires (a + 1)) := by
-  apply trans
-  apply mix₀ (symm wires₁)
-  apply wires_mix_wires
-  simp
+def wires_mix_wires : EqN S # (mix (wires a) (wires b)) (wires (a + b)) := by apply wires_mix_wires_; rfl
 
 def wire_mix_wires_ {h : a + 1 = n} : EqN S # (mix wire (wires a)) (wires n) := by
-  apply trans
-  apply mix₀ (symm wires₁)
-  apply wires_mix_wires
+  apply trans (mix₀ wires₁.symm)
+  apply wires_mix_wires_
   simp [*]
+
+def wire_mix_wires : EqN S # (mix wire (wires a)) (wires (a + 1)) := by apply wire_mix_wires_; rfl
 
 def up_down : EqN S # (mix A B) (cat # (mix (wires aᵢ) B) (mix A (wires bₒ))) := by
   apply trans
