@@ -23,8 +23,7 @@ inductive Net (S : System) : Nat -> Nat -> Type
 
 open Net
 
-def castₙ {i₁ o₁ i₂ o₂ : Nat} : ((i₁ = i₂) ∧ (o₁ = o₂)) -> Net S i₁ o₁ -> Net S i₂ o₂
-  | (And.intro rfl rfl), n => n
+@[simp] def castₙ {i₁ o₁ i₂ o₂ : Nat} (h : (i₁ = i₂) ∧ (o₁ = o₂)) (n : Net S i₁ o₁) : Net S i₂ o₂ := cast # n
 
 def wires : (n : Nat) -> Net S n n
   | 0 => nil

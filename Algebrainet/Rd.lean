@@ -11,7 +11,6 @@ structure Rules (S : System) where
   rule : {a b : S.Agent} -> defined a b -> Net S ((S.arity a) + (S.arity b)) 0
   rule_symm : {a b : S.Agent} -> (d : defined a b) -> EqN S # (rule d) (rule (defined_symm d))
 
-
 def pair {S : System} (a b : S.Agent) : Net S ((S.arity a) + (S.arity b)) 0 :=
   cat # (mix (agent a) (agent b)) cap
 
@@ -20,110 +19,179 @@ inductive Rd (S : System) (R : Rules S) : {i o : Nat} -> (x y : Net S i o) -> Pr
   | cat₀ :
     {i o : Nat} -> {a b : Net S i o} ->
     {cᵢ cₒ : Nat} -> {c : Net S cᵢ cₒ} ->
+    Rd S R a b ->
     {h : _} ->
     Rd S R (cat h a c) (cat h b c)
   | cat₁ :
     {i o : Nat} -> {a b : Net S i o} ->
     {cᵢ cₒ : Nat} -> {c : Net S cᵢ cₒ} ->
+    Rd S R a b ->
     {h : _} ->
     Rd S R (cat h c a) (cat h c b)
   | mix₀ :
     {i o : Nat} -> {a b : Net S i o} ->
     {cᵢ cₒ : Nat} -> {c : Net S cᵢ cₒ} ->
+    Rd S R a b ->
     Rd S R (mix a c) (mix b c)
   | mix₁ :
     {i o : Nat} -> {a b : Net S i o} ->
     {cᵢ cₒ : Nat} -> {c : Net S cᵢ cₒ} ->
+    Rd S R a b ->
     Rd S R (mix c a) (mix c b)
 
 variable {S : System} {R : Rules S}
 
-abbrev vee (R : Rules S) {i o : Nat} (b c : Net S i o) : Prop :=
-  b = c ∨ ∃ (d : Net S i o), Rd S R b d ∧ Rd S R c d
+inductive Vee (R : Rules S) {i o : Nat} (b c : Net S i o) : Prop
+  | eq : (b = c) -> Vee R b c
+  | rd : {d : Net S i o} -> Rd S R b d -> Rd S R c d -> Vee R b c
 
-def make_heq {α : Type} {a b : α} : a = b -> HEq a b
-  | rfl => .rfl
+abbrev NEq {S : System} {aᵢ aₒ bᵢ bₒ : Nat} (a : Net S aᵢ aₒ) (b : Net S bᵢ bₒ) : Prop
+  := Eq (α := Σ i o, Net S i o) ⟨aᵢ, aₒ, a⟩ ⟨bᵢ, bₒ, b⟩
 
--- set_option pp.explicit true
+def extract_agent {i o : Nat} : (n : Net S i o) -> Option S.Agent
+  | agent a => some a
+  | _ => none
 
-def pair_eq : {a b c d : S.Agent} -> HEq (pair a b) (pair c d) -> a = c ∧ b = d := sorry
+namespace NEq
 
-def rd_perf_conf3 {S : System} {R : Rules S}
-  {i₀ o₀ : Nat} {a₀ b : Net S i₀ o₀} (r₀ : Rd S R a₀ b)
-  {i₁ o₁ : Nat} {a₁ c : Net S i₁ o₁} (r₁ : Rd S R a₁ c)
-  {hᵢ : i₀ = i₁} {hₒ : o₀ = o₁} {hₐ : HEq a₀ a₁}
-  : vee R b (cast # c)
+variable
+  {aᵢ aₒ bᵢ bₒ : Nat} {a : Net S aᵢ aₒ} {b : Net S bᵢ bₒ}
+
+def congr
+  {α : Type}
+  (h : NEq a b)
+  (f : {i o : Nat} -> Net S i o -> α)
+  : f a = f b
+:= Eq.rec (motive := fun b _ => f a = f b.snd.snd) rfl h
+
+@[simp] def eqᵢ (h : NEq a b) : aᵢ = bᵢ := Eq.rec (motive := fun b _ => aᵢ = b.fst) rfl h
+@[simp] def eqₒ (h : NEq a b) : aₒ = bₒ := Eq.rec (motive := fun b _ => aₒ = b.snd.fst) rfl h
+
+end NEq
+
+def extract_pair {i o : Nat} : (n : Net S i o) -> Option (S.Agent × S.Agent)
+  | cat _ (mix (agent a) (agent b)) cap => some (a, b)
+  | _ => none
+
+abbrev SNet (S : System) := Σ i o, Net S i o
+
+def extract_cat {i o : Nat} : (n : Net S i o) -> Option (SNet S × SNet S)
+  | cat _ a b => some (⟨_, _, a⟩, ⟨_, _, b⟩)
+  | _ => none
+
+def uncat₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ a _ => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ _ b => some ⟨_, _, b⟩
+  | _ => none
+
+def unmix₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | mix a _ => some ⟨_, _, a⟩
+  | _ => none
+
+def unmix₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | mix _ b => some ⟨_, _, b⟩
+  | _ => none
+
+def kind {i o : Nat} : (n : Net S i o) -> Nat
+  | nil => 0
+  | wire => 1
+  | swap => 2
+  | cup => 3
+  | cap => 4
+  | agent _ => 5
+  | mix _ _ => 6
+  | cat _ _ _ => 7
+
+def cat₀_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
+  | cat _ a _ => some (kind a)
+  | _ => none
+
+def cat₁_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
+  | cat _ _ b => some (kind b)
+  | _ => none
+
+def cat₀_mix₀_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
+  | cat _ (mix a _) _ => some (kind a)
+  | _ => none
+
+def cat₀_mix₁_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
+  | cat _ (mix _ b) _ => some (kind b)
+  | _ => none
+
+abbrev unsome {α : Type} {a b : α} : some a = some b -> a = b := Option.some_inj.mp
+
+def rd_perf_conf_ {S : System} {R : Rules S}
+  {i₀ o₀ i₁ o₁ : Nat}
+  {a₀ b : Net S i₀ o₀} {a₁ c : Net S i₁ o₁}
+  (r₀ : Rd S R a₀ b) (r₁ : Rd S R a₁ c)
+  (hₐ : NEq a₀ a₁)
+  : Vee R (castₙ ⟨hₐ.eqᵢ, hₐ.eqₒ⟩ b) c
 := by
-  cases r₀ with
+  induction r₀ generalizing i₁ o₁ a₁ c r₁ with
   | pair x₀ y₀ d₀ =>
     cases r₁ with
     | pair x₁ y₁ d₁ =>
-      obtain ⟨⟨⟩, ⟨⟩⟩ := pair_eq hₐ
+      cases hₐ.congr extract_pair
+      apply Vee.eq
+      simp
+    | mix₀ | mix₁ => repeat cases hₐ.congr kind
+    | cat₀ r₁ =>
+      cases r₁
+      repeat . cases hₐ.congr cat₀_kind
+      repeat {
+        rename_i r₁ _; cases r₁
+        repeat . cases hₐ.congr cat₀_mix₀_kind
+        repeat . cases hₐ.congr cat₀_mix₁_kind
+      }
+    | cat₁ r₁ => cases r₁; repeat cases hₐ.congr cat₁_kind
+  | cat₀ r₀ ih =>
+    cases r₁ with
+    | cat₀ r₁ =>
+      cases ih r₁ (hₐ := unsome (hₐ.congr uncat₀)) with
+      | eq h => apply Vee.eq; cases h; cases hₐ; rfl
+      | rd l r => cases hₐ; exact Vee.rd (.cat₀ l) (.cat₀ r)
+    | cat₁ r₁ => cases hₐ; simp; exact Vee.rd (.cat₁ r₁) (.cat₀ r₀)
+    | mix₀ | mix₁ => repeat cases hₐ.congr kind
+    | pair =>
+      cases r₀
+      repeat . cases hₐ.congr cat₀_kind
+      repeat {
+        rename_i r₁ _; cases r₁
+        repeat . cases hₐ.congr cat₀_mix₀_kind
+        repeat . cases hₐ.congr cat₀_mix₁_kind
+      }
+  | cat₁ r₀ ih =>
+    cases r₁ with
+    | cat₁ r₁ =>
+      cases ih r₁ (hₐ := unsome (hₐ.congr uncat₁)) with
+      | eq h => apply Vee.eq; cases h; cases hₐ; rfl
+      | rd l r => cases hₐ; exact Vee.rd (.cat₁ l) (.cat₁ r)
+    | cat₀ r₁ => cases hₐ; simp; exact Vee.rd (.cat₀ r₁) (.cat₁ r₀)
+    | mix₀ | mix₁ => repeat cases hₐ.congr kind
+    | pair => cases r₀; repeat . cases hₐ.congr cat₁_kind
+  | mix₀ r₀ ih =>
+    cases r₁ with
+    | mix₀ r₁ =>
+      cases ih r₁ (hₐ := unsome (hₐ.congr unmix₀)) with
+      | eq h => apply Vee.eq; cases h; cases hₐ.congr unmix₀; cases hₐ.congr unmix₁; cases hₐ; rfl
+      | rd l r => cases hₐ.congr unmix₀; cases hₐ.congr unmix₁; cases hₐ; exact Vee.rd (.mix₀ l) (.mix₀ r)
+    | mix₁ r₁ => cases hₐ.congr unmix₀; cases hₐ.congr unmix₁; cases hₐ; simp; exact Vee.rd (.mix₁ r₁) (.mix₀ r₀)
+    | cat₀ | cat₁ | pair => repeat cases hₐ.congr kind
+  | mix₁ r₀ ih =>
+    cases r₁ with
+    | mix₁ r₁ =>
+      cases ih r₁ (hₐ := unsome (hₐ.congr unmix₁)) with
+      | eq h => apply Vee.eq; cases h; cases hₐ.congr unmix₀; cases hₐ.congr unmix₁; cases hₐ; rfl
+      | rd l r => cases hₐ.congr unmix₀; cases hₐ.congr unmix₁; cases hₐ; exact Vee.rd (.mix₁ l) (.mix₁ r)
+    | mix₀ r₁ => cases hₐ.congr unmix₀; cases hₐ.congr unmix₁; cases hₐ; simp; exact Vee.rd (.mix₀ r₁) (.mix₁ r₀)
+    | cat₀ | cat₁ | pair => repeat cases hₐ.congr kind
 
-
-
-
-
-
-      repeat sorry
-    | _ => sorry
-  | _ => sorry
-
-def make_copy {α : Type} {β : Prop} (a : α) {f : (b : α) -> a = b -> β} : β := f a rfl
-
-def rd_perf_conf2 {S : System} {R : Rules S}
-  {i o : Nat} {a b c : Net S i o}
+def rd_perf_conf
+  {i o : Nat}
+  {a b c : Net S i o}
   (r₀ : Rd S R a b) (r₁ : Rd S R a c)
-  : vee R b c
-:= by
-  apply make_copy a; intro a' ha
-  apply make_copy c; intro c' hc
-  rw [ha, hc] at r₁
-  replace ha := ()
-  replace hc := ()
-  apply make_copy i; intro i' hi
-  rw [hi] at a' c'
-
-
-
-
-
-
-
-
-  -- generalize a = a' at r₁
-  -- generalize c = c'
-  -- generalize hi : i = i' at a b c' r₀
-
-
-  cases r₀ with
-  | pair x y d =>
-
-    -- generalize h₀ : (pair x y) = a at *
-    -- generalize (R.rule d) = b at *
-    -- replace h₀ := make_heq h₀
-    -- let foo := ∀ (wee : Nat) {c : Net S wee 0} (a : Net S wee 0), Rd S R a c → ∀ (b : Net S wee 0), HEq (pair x y) a → vee R b c
-    -- replace h₁ := make_heq h₁
-    -- generalize (S.arity x + S.arity y) = wee at *
-
-    repeat sorry
-  | _ => sorry
-
-
-
-def rd_perf_conf {S : System} {R : Rules S}
-  {i o : Nat} {a b c : Net S i o}
-  (r₀ : Rd S R a b) (r₁ : Rd S R a c)
-  : vee R b c
-:= (
-  Rd.rec (S := S) (R := R) (motive := fun {i} {o} a b _ => ({c : Net S i o} -> Rd S R a c -> vee R b c))
-  (fun a b => by
-
-    sorry
-  )
-  sorry
-  sorry
-  sorry
-  sorry
-  r₀ r₁
-)
+  : Vee R b c
+:= rd_perf_conf_ r₀ r₁ rfl
