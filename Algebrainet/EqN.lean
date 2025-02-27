@@ -2,7 +2,7 @@ import Algebrainet.Net
 
 open Net
 
-inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) ∧ (o₁ = o₂)) -> (x : Net S i₁ o₁) -> (y : Net S i₂ o₂) -> Type
+inductive EqN (S : System) : {i₁ o₁ i₂ o₂ : Nat} -> (h : (i₁ = i₂) ∧ (o₁ = o₂)) -> (x : Net S i₁ o₁) -> (y : Net S i₂ o₂) -> Prop
   | refl :
     {xᵢ xₒ : Nat} -> {x : Net S xᵢ xₒ} ->
     EqN S # x x
