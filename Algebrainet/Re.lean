@@ -16,7 +16,21 @@ variable
 
 set_option maxHeartbeats 2000000
 
-def ne_wires_cat {n h : _} : ¬EqN (S := S) (wires n) (cat h a b) := by intro h; cases n <;> cases h.congr kind
+def ne_wires_cat {n h : _} : ¬EqN (S := S) (wires_ n) (cat h a b) := by
+  intro h
+  cases n
+  case' succ n => cases n
+  all_goals . cases h.congr kind
+
+def ne_wires_agent_mix {n a : _} : ¬EqN (S := S) (wires_ n) (mix (agent a) b) := by
+  intro h
+  cases n
+  case' succ n => cases n
+  case' succ n => cases n
+  all_goals try first
+  | . cases h.congr kind
+  | . cases h.congr mix₀_kind
+
 def norm_wire_wire {h : _ } (hₐ : EqN a (mix wire wire)) : ¬EqvB S h a b := by
   stop
   intro x
@@ -84,28 +98,10 @@ def comm_atom_atom
     cases hₐ.congr unmix₀
     cases hₐ.congr unmix₁
     exact .mk (.apply (.mix₀ (.atom .nil_mix)) .refl) .refl
-  case nil_cat.cat_assoc =>
-    cases hₐ.congr uncat₀
-    cases hₐ.congr uncat₁
-    exact .mk .refl (.apply (.cat₀ (.atom .nil_cat)) .refl)
-  case cat_assoc.nil_cat =>
-    cases hₐ.congr uncat₀
-    cases hₐ.congr uncat₁
-    exact .mk (.apply (.cat₀ (.atom .nil_cat)) .refl) .refl
   case mix_assoc.mix_assoc =>
     cases hₐ.congr unmix₀
     cases hₐ.congr unmix₁₀
     cases hₐ.congr unmix₁₁
-    exact .mk .refl .refl
-  case nil_cat.wires_agent | wires_agent.nil_cat =>
-    cases hₐ.congr uncat₁
-    exact .mk .refl .refl
-  case wires_swap.move_agent | move_agent.wires_swap => cases hₐ.congr cat₀_mix₀_kind
-  case agent_wire.agent_wire =>
-    cases hₐ.congr cat₀_agent
-    exact .mk .refl .refl
-  case wires_agent.wires_agent =>
-    cases hₐ.congr cat₁_agent
     exact .mk .refl .refl
   case move_agent.move_agent =>
     cases hₐ.congr cat₀_mix₀_agent
@@ -117,6 +113,69 @@ def comm_atom_atom
     cases hₐ.congr un_cat_mix
     rename_i h _
     cases h
+
+  case cat_wires.wires_cat | wires_cat.cat_wires =>
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁
+    rename_i h
+    cases h
+    exact .mk .refl .refl
+
+  case cat_wires.cat_assoc =>
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁
+    exact .mk .refl (.apply (.cat₁ (.atom .cat_wires)) .refl)
+  case cat_assoc.cat_wires =>
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁
+    exact .mk (.apply (.cat₁ (.atom .cat_wires)) .refl) .refl
+
+  case cat_wires.exch =>
+    cases o₀
+    . cases hₐ.congr cat₁_kind
+    rename_i n _
+    cases n
+    . cases hₐ.congr cat₁_kind
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁_mix₀
+    cases hₐ.congr uncat₁_mix₁
+    exact .mk .refl (.apply (.mix₀ (.atom .cat_wires)) (.apply (.mix₁ (.atom .cat_wires)) .refl))
+  case exch.cat_wires =>
+    cases o₁
+    . cases hₐ.congr cat₁_kind
+    rename_i n _
+    cases n
+    . cases hₐ.congr cat₁_kind
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁_mix₀
+    cases hₐ.congr uncat₁_mix₁
+    exact .mk (.apply (.mix₀ (.atom .cat_wires)) (.apply (.mix₁ (.atom .cat_wires)) .refl)) .refl
+
+  case wires_cat.exch =>
+    cases i₀
+    . cases hₐ.congr cat₀_kind
+    rename_i n _
+    cases n
+    . cases hₐ.congr cat₀_kind
+    cases hₐ.congr uncat₁
+    cases hₐ.congr uncat₀_mix₀
+    cases hₐ.congr uncat₀_mix₁
+    exact .mk .refl (.apply (.mix₀ (.atom .wires_cat)) (.apply (.mix₁ (.atom .wires_cat)) .refl))
+  case exch.wires_cat =>
+    cases i₁
+    . cases hₐ.congr cat₀_kind
+    rename_i n _
+    cases n
+    . cases hₐ.congr cat₀_kind
+    cases hₐ.congr uncat₁
+    cases hₐ.congr uncat₀_mix₀
+    cases hₐ.congr uncat₀_mix₁
+    exact .mk (.apply (.mix₀ (.atom .wires_cat)) (.apply (.mix₁ (.atom .wires_cat)) .refl)) .refl
+
+  case wires_cat.cat_assoc | cat_assoc.wires_cat =>
+    cases ne_wires_cat (unsome (hₐ.congr uncat₀))
+  case wires_cat.move_agent | move_agent.wires_cat =>
+    cases ne_wires_agent_mix (unsome (hₐ.congr uncat₀))
 
 def comm_mix₀_atom
   {h₀ h₁ : _} (x : EqvB S h₀ a d) (y : EqvA S h₁ c e)
@@ -138,6 +197,10 @@ def comm_mix₀_atom
     cases hₐ.congr unmix₀
     cases hₐ.congr unmix₁
     exact .mk (.apply (.atom .mix_assoc) .refl) (.apply (.mix₀ (.mix₀ x)) .refl)
+  case unexch =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁
+    exact .mk .refl (.apply (.atom .exch) (.apply (.mix₀ x) .refl))
 
 def comm_mix₁_atom
   {h₀ h₁ : _} (x : EqvB S h₀ b d) (y : EqvA S h₁ c e)
@@ -156,9 +219,7 @@ def comm_mix₁_atom
     exact .mk (.apply (.atom .nil_mix) .refl) (.apply x .refl)
   case mix_assoc =>
     cases hₐ.congr unmix₀
-    cases x
-    rename_i x
-    cases x
+    cases x; rename_i x; cases x
     all_goals try . cases hₐ.congr mix₁_kind
     case mix_nil =>
       cases hₐ.congr unmix₁₀
@@ -172,6 +233,10 @@ def comm_mix₁_atom
       cases hₐ.congr unmix₁₀
       cases hₐ.congr unmix₁₁
       exact .mk (.apply (.atom .mix_assoc) (.apply (.mix₁ (.atom .mix_assoc)) .refl)) (.apply (.atom .mix_assoc) .refl)
+    case unexch =>
+      cases hₐ.congr unmix₁₀
+      cases hₐ.congr unmix₁₁
+      exact .mk (.apply (.mix₁ (.atom .exch)) (.apply (.atom .mix_assoc) .refl)) .refl
     case mix₀ y =>
       cases hₐ.congr unmix₁₀
       cases hₐ.congr unmix₁₁
@@ -180,6 +245,10 @@ def comm_mix₁_atom
       cases hₐ.congr unmix₁₀
       cases hₐ.congr unmix₁₁
       exact .mk (.apply (.atom .mix_assoc) .refl) (.apply (.mix₁ y) .refl)
+  case unexch =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁
+    exact .mk .refl (.apply (.atom .exch) (.apply (.mix₁ x) .refl))
 
 def comm_cat₀_atom
   {h₀ h₁ h₂ : _} (x : EqvB S h₀ a d) (y : EqvA S h₁ c e)
@@ -202,11 +271,17 @@ def comm_cat₀_atom
   --   cases hₐ.congr uncat₀
   --   cases hₐ.congr uncat₁
   --   cases norm_wires rfl x
-  -- case cat_assoc =>
-  --   cases hₐ.congr uncat₀
-  --   cases hₐ.congr uncat₁
-  --   apply Eqv.mk (.apply (.atom .cat_assoc) .refl) (.apply (.cat₀ (.cat₀ x)) .refl)
-  --   repeat simp [*] at *
+  case cat_assoc =>
+    cases hₐ.congr uncat₁
+    cases x; rename_i x; cases x
+    all_goals try . cases hₐ.congr cat₀_kind
+
+
+
+    repeat sorry
+
+
+
   -- case move_cup | move_cap | move_swap | move_agent | cup_cap =>
   --   cases x; rename_i x; cases x
   --   all_goals try first
@@ -221,13 +296,11 @@ def comm_cat₀_atom
   --     rename_i x
   --     cases x; rename_i x; cases x
   --     all_goals . cases hₐ.congr cat₀_mix₁_kind
-
-
-  case exch =>
-    cases hₐ.congr uncat₀
-    cases hₐ.congr uncat₁
-
-    sorry
+  -- case exch =>
+  --   cases hₐ.congr uncat₀
+  --   cases hₐ.congr uncat₁
+  --   apply Eqv.mk .refl (.apply (.atom .unexch) (.apply (.cat₀ x) .refl))
+  --   simp only [*]
 
   repeat sorry
 

@@ -83,6 +83,38 @@ def uncat₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
   | cat _ _ b => some ⟨_, _, b⟩
   | _ => none
 
+def uncat₀₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ (cat _ a _) _ => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₀₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ (cat _ _ a) _ => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₁₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ _ (cat _ a _) => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₁₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ _ (cat _ _ a) => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₁_mix₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ _ (mix a _) => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₁_mix₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ _ (mix _ a) => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₀_mix₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ (mix a _) _ => some ⟨_, _, a⟩
+  | _ => none
+
+def uncat₀_mix₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | cat _ (mix _ a) _ => some ⟨_, _, a⟩
+  | _ => none
+
 def unmix₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
   | mix a _ => some ⟨_, _, a⟩
   | _ => none
