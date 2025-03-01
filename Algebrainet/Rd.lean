@@ -87,6 +87,22 @@ def unmix₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
   | mix a _ => some ⟨_, _, a⟩
   | _ => none
 
+def unmix₀₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | mix (mix a _) _ => some ⟨_, _, a⟩
+  | _ => none
+
+def unmix₀₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | mix (mix _ a) _ => some ⟨_, _, a⟩
+  | _ => none
+
+def unmix₁₀ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | mix _ (mix a _) => some ⟨_, _, a⟩
+  | _ => none
+
+def unmix₁₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
+  | mix _ (mix _ a) => some ⟨_, _, a⟩
+  | _ => none
+
 def unmix₁ {i o : Nat} : (n : Net S i o) -> Option (SNet S)
   | mix _ b => some ⟨_, _, b⟩
   | _ => none
@@ -107,6 +123,14 @@ def cat₀_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
 
 def cat₁_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
   | cat _ _ b => some (kind b)
+  | _ => none
+
+def mix₀_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
+  | mix a _ => some (kind a)
+  | _ => none
+
+def mix₁_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
+  | mix _ b => some (kind b)
   | _ => none
 
 def cat₀_mix₀_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
