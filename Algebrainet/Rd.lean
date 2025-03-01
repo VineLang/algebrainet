@@ -141,6 +141,26 @@ def cat₀_mix₁_kind {i o : Nat} : (n : Net S i o) -> Option (Nat)
   | cat _ (mix _ b) _ => some (kind b)
   | _ => none
 
+def cat₀_mix₀_agent {i o : Nat} : (n : Net S i o) -> Option S.Agent
+  | cat _ (mix (agent a) _) _ => some a
+  | _ => none
+
+def cat₀_agent {i o : Nat} : (n : Net S i o) -> Option S.Agent
+  | cat _ (agent a) _ => some a
+  | _ => none
+
+def cat₁_agent {i o : Nat} : (n : Net S i o) -> Option S.Agent
+  | cat _ _ (agent a) => some a
+  | _ => none
+
+def un_cat_mix {i o : Nat} : (n : Net S i o) -> Option (SNet S × SNet S × SNet S × SNet S)
+  | cat _ (mix a b) (mix c d) => some (⟨_, _, a⟩, ⟨_, _, b⟩, ⟨_, _, c⟩, ⟨_, _, d⟩)
+  | _ => none
+
+def un_cat₁_mix {i o : Nat} : (n : Net S i o) -> Option (SNet S × SNet S)
+  | cat _ _ (mix c d) => some (⟨_, _, c⟩, ⟨_, _, d⟩)
+  | _ => none
+
 abbrev unsome {α : Type} {a b : α} : some a = some b -> a = b := Option.some_inj.mp
 
 def rd_perf_conf_ {S : System} {R : Rules S}

@@ -12,98 +12,284 @@ variable
   {bᵢ bₒ : Nat} {b : Net S bᵢ bₒ}
   {cᵢ cₒ : Nat} {c : Net S cᵢ cₒ}
   {dᵢ dₒ : Nat} {d : Net S dᵢ dₒ}
+  {eᵢ eₒ : Nat} {e : Net S eᵢ eₒ}
 
-def comm
+set_option maxHeartbeats 2000000
+
+def ne_wires_cat {n h : _} : ¬EqN (S := S) (wires n) (cat h a b) := by intro h; cases n <;> cases h.congr kind
+def norm_wire_wire {h : _ } (hₐ : EqN a (mix wire wire)) : ¬EqvB S h a b := by
+  stop
+  intro x
+  cases x; rename_i x; cases x
+  all_goals first
+  | . cases hₐ.congr mix₀_kind
+  | . cases hₐ.congr mix₁_kind
+  | . rename_i x
+      cases x; rename_i x; cases x
+      all_goals try first
+      | . cases hₐ.congr mix₀_kind
+      | . cases hₐ.congr mix₁_kind
+def norm_wires {n h : _} (hₐ : EqN a (wires_ n)) : ¬EqvB S h a b := by
+  stop
+  cases n with
+  | zero =>
+    intro x
+    cases x; rename_i x; cases x
+    all_goals . cases hₐ.congr kind
+  | succ n =>
+    induction n generalizing h aᵢ aₒ bᵢ bₒ with
+    | zero =>
+      intro x
+      cases x; rename_i x; cases x
+      all_goals . cases hₐ.congr kind
+    | succ n ih =>
+      intro x
+      cases x; rename_i x; cases x
+      all_goals try . cases hₐ.congr mix₁_kind
+      case nil_mix => cases n <;> cases hₐ.congr mix₀_kind
+      case mix₁ x => cases x; rename_i x; cases x; all_goals . cases hₐ.congr mix₁_kind
+      case mix₀ x =>
+        cases hₐ.congr unmix₀
+        exact ih rfl x
+
+def comm_atom_atom
   {i₀ o₀ : Nat} {a₀ : Net S i₀ o₀}
   {i₁ o₁ : Nat} {a₁ : Net S i₁ o₁}
   {h₀ h₁ : _} (x : EqvA S h₀ a₀ b) (y : EqvA S h₁ a₁ c)
   (hₐ : EqN a₀ a₁)
-  : EqvN S (by cases hₐ; simp [h₀] at h₁; simp [*]) b c  := by
-  induction x generalizing i₁ o₁ cᵢ cₒ with
-  | mix_nil =>
-    stop . cases y with
-    | mix_nil =>
-      cases hₐ
-      exact .mk .refl .refl
-    | nil_mix =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk .refl .refl
-    | mix_assoc =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk .refl (.apply (.mix₁ .mix_nil) .refl)
-    | mix₀ y =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk (.apply y .refl) (.apply .mix_nil .refl)
-    | mix₁ y => cases y <;> cases hₐ.congr mix₁_kind
-    | _ => cases hₐ.congr kind
-  | nil_mix =>
-    stop . cases y with
-    | nil_mix =>
-      cases hₐ.congr unmix₁
-      exact .mk .refl .refl
-    | mix_nil =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk .refl .refl
-    | mix₁ y =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk (.apply y .refl) (.apply .nil_mix .refl)
-    | mix_assoc => cases hₐ.congr mix₀_kind
-    | mix₀ y => cases y <;> cases hₐ.congr mix₀_kind
-    | _ => cases hₐ.congr kind
-  | mix_assoc =>
-    stop . cases y with
-    | mix_nil =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk (.apply (.mix₁ .mix_nil) .refl) .refl
-    | nil_mix => cases hₐ.congr mix₀_kind
-    | mix_assoc =>
-      cases hₐ.congr unmix₀₀
-      cases hₐ.congr unmix₀₁
-      cases hₐ.congr unmix₁
-      exact .mk .refl .refl
-    | mix₁ y =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk (.apply (.mix₁ (.mix₁ y)) .refl) (.apply .mix_assoc .refl)
-    | mix₀ y =>
-      cases hₐ.congr unmix₁
-      cases y with
-      | mix_nil =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk (.apply (.mix₁ .nil_mix) .refl) .refl
-      | nil_mix =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
+  : Eqv S (by cases hₐ; simp [h₀] at h₁; simp [*]) b c := by
+  stop
+  cases x <;> cases y
+  all_goals try first
+  | . cases hₐ.congr kind
+  | . cases hₐ.congr cat₀_kind
+  | . cases hₐ.congr cat₁_kind
+  | . cases hₐ.congr mix₀_kind
+  | . cases hₐ.congr mix₁_kind
+  | . cases hₐ.congr uncat₀
+  | . cases hₐ.congr uncat₁
+  | . try
+        cases hₐ.congr unmix₀
         cases hₐ.congr unmix₁
-        exact .mk (.apply .nil_mix .refl) .refl
-      | mix_assoc =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk (.apply .mix_assoc .refl) (.apply .mix_assoc (.apply (.mix₁ .mix_assoc) .refl))
-      | mix₀ y =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk (.apply (.mix₀ y) .refl) (.apply .mix_assoc .refl)
-      | mix₁ y =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk (.apply (.mix₁ (.mix₀ y)) .refl) (.apply .mix_assoc .refl)
-      | _ => cases hₐ.congr mix₀_kind
-    | _ => cases hₐ.congr kind
+      try
+        cases hₐ.congr uncat₀
+        cases hₐ.congr uncat₁
+      exact .mk .refl .refl
+
+  case nil_mix.mix_assoc =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁
+    exact .mk .refl (.apply (.mix₀ (.atom .nil_mix)) .refl)
+  case mix_assoc.nil_mix =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁
+    exact .mk (.apply (.mix₀ (.atom .nil_mix)) .refl) .refl
+  case nil_cat.cat_assoc =>
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁
+    exact .mk .refl (.apply (.cat₀ (.atom .nil_cat)) .refl)
+  case cat_assoc.nil_cat =>
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁
+    exact .mk (.apply (.cat₀ (.atom .nil_cat)) .refl) .refl
+  case mix_assoc.mix_assoc =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁₀
+    cases hₐ.congr unmix₁₁
+    exact .mk .refl .refl
+  case nil_cat.wires_agent | wires_agent.nil_cat =>
+    cases hₐ.congr uncat₁
+    exact .mk .refl .refl
+  case wires_swap.move_agent | move_agent.wires_swap => cases hₐ.congr cat₀_mix₀_kind
+  case agent_wire.agent_wire =>
+    cases hₐ.congr cat₀_agent
+    exact .mk .refl .refl
+  case wires_agent.wires_agent =>
+    cases hₐ.congr cat₁_agent
+    exact .mk .refl .refl
+  case move_agent.move_agent =>
+    cases hₐ.congr cat₀_mix₀_agent
+    exact .mk .refl .refl
+  case exch.exch =>
+    cases hₐ.congr un_cat_mix
+    exact .mk .refl .refl
+  case exch.move_cup | exch.move_cap | exch.cup_cap | cup_cap.exch | move_cap.exch | move_cup.exch =>
+    cases hₐ.congr un_cat_mix
+    rename_i h _
+    cases h
+
+def comm_mix₀_atom
+  {h₀ h₁ : _} (x : EqvB S h₀ a d) (y : EqvA S h₁ c e)
+  (hₐ : EqN (mix a b) c)
+  : Eqv S (by cases hₐ; simp [h₀] at h₁; simp [*]) (mix d b) e := by
+  stop
+  cases y <;> try . cases hₐ.congr kind
+  case mix_nil =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁
+    exact .mk (.apply (.atom .mix_nil) .refl) (.apply x .refl)
+  case nil_mix =>
+    stop
+    cases x
+    rename_i x
+    cases x
+    repeat . cases hₐ.congr mix₀_kind
+  case mix_assoc =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁
+    exact .mk (.apply (.atom .mix_assoc) .refl) (.apply (.mix₀ (.mix₀ x)) .refl)
+
+def comm_mix₁_atom
+  {h₀ h₁ : _} (x : EqvB S h₀ b d) (y : EqvA S h₁ c e)
+  (hₐ : EqN (mix a b) c)
+  : Eqv S (by cases hₐ; simp [h₀] at h₁; simp [*]) (mix a d) e := by
+  stop
+  cases y <;> try . cases hₐ.congr kind
+  case mix_nil =>
+    cases x
+    rename_i x
+    cases x
+    repeat . cases hₐ.congr mix₁_kind
+  case nil_mix =>
+    cases hₐ.congr unmix₀
+    cases hₐ.congr unmix₁
+    exact .mk (.apply (.atom .nil_mix) .refl) (.apply x .refl)
+  case mix_assoc =>
+    cases hₐ.congr unmix₀
+    cases x
+    rename_i x
+    cases x
+    all_goals try . cases hₐ.congr mix₁_kind
+    case mix_nil =>
+      cases hₐ.congr unmix₁₀
+      cases hₐ.congr unmix₁₁
+      exact .mk .refl (.apply (.atom .mix_nil) .refl)
+    case nil_mix =>
+      cases hₐ.congr unmix₁₀
+      cases hₐ.congr unmix₁₁
+      exact .mk .refl (.apply (.mix₀ (.atom .mix_nil)) .refl)
+    case mix_assoc =>
+      cases hₐ.congr unmix₁₀
+      cases hₐ.congr unmix₁₁
+      exact .mk (.apply (.atom .mix_assoc) (.apply (.mix₁ (.atom .mix_assoc)) .refl)) (.apply (.atom .mix_assoc) .refl)
+    case mix₀ y =>
+      cases hₐ.congr unmix₁₀
+      cases hₐ.congr unmix₁₁
+      exact .mk (.apply (.atom .mix_assoc) .refl) (.apply (.mix₀ (.mix₁ y)) .refl)
+    case mix₁ y =>
+      cases hₐ.congr unmix₁₀
+      cases hₐ.congr unmix₁₁
+      exact .mk (.apply (.atom .mix_assoc) .refl) (.apply (.mix₁ y) .refl)
+
+def comm_cat₀_atom
+  {h₀ h₁ h₂ : _} (x : EqvB S h₀ a d) (y : EqvA S h₁ c e)
+  (hₐ : EqN (cat h₂ a b) c)
+  : Eqv S (by cases hₐ; simp [h₀] at h₁; simp [*]) (cat (by cases hₐ; rcases h₀ with ⟨⟨⟩,⟨⟩⟩; simp [*]) d b) e := by
+  cases y
+  -- all_goals try first
+  -- | . cases hₐ.congr kind
+  -- | . cases x; rename_i x; cases x
+  --     all_goals . cases hₐ.congr cat₀_kind
+  -- case cat_nil =>
+  --   cases hₐ.congr uncat₀
+  --   cases hₐ.congr uncat₁
+  --   exact .mk (.apply (.atom .cat_nil) .refl) (.apply x .refl)
+  -- case wires_swap | wires_cap =>
+  --   cases hₐ.congr uncat₀
+  --   cases hₐ.congr uncat₁
+  --   cases norm_wire_wire rfl x
+  -- case wires_agent =>
+  --   cases hₐ.congr uncat₀
+  --   cases hₐ.congr uncat₁
+  --   cases norm_wires rfl x
+  -- case cat_assoc =>
+  --   cases hₐ.congr uncat₀
+  --   cases hₐ.congr uncat₁
+  --   apply Eqv.mk (.apply (.atom .cat_assoc) .refl) (.apply (.cat₀ (.cat₀ x)) .refl)
+  --   repeat simp [*] at *
+  -- case move_cup | move_cap | move_swap | move_agent | cup_cap =>
+  --   cases x; rename_i x; cases x
+  --   all_goals try first
+  --   | . cases hₐ.congr cat₀_kind
+  --   | . cases hₐ.congr cat₀_mix₀_kind
+  --   | . cases hₐ.congr cat₀_mix₁_kind
+  --   case mix₀ =>
+  --     rename_i x
+  --     cases x; rename_i x; cases x
+  --     all_goals . cases hₐ.congr cat₀_mix₀_kind
+  --   case mix₁ =>
+  --     rename_i x
+  --     cases x; rename_i x; cases x
+  --     all_goals . cases hₐ.congr cat₀_mix₁_kind
+
+
+  case exch =>
+    cases hₐ.congr uncat₀
+    cases hₐ.congr uncat₁
+
+    sorry
+
+  repeat sorry
+
+
+
+
+
+
+
+
+
+  /-
+
+  case exch
+  S : System
+  aᵢ aₒ : Nat
+  a : Net S aᵢ aₒ
+  bᵢ bₒ : Nat
+  b : Net S bᵢ bₒ
+  dᵢ dₒ : Nat
+  d : Net S dᵢ dₒ
+  h₀ : aᵢ = dᵢ ∧ aₒ = dₒ
+  h₂ : aₒ = bᵢ
+  x : EqvB S h₀ a d
+  xᵢ✝ xₒ✝ : Nat
+  x✝ : Net S xᵢ✝ xₒ✝
+  yᵢ✝ yₒ✝ : Nat
+  y✝ : Net S yᵢ✝ yₒ✝
+  zᵢ✝ zₒ✝ : Nat
+  z✝ : Net S zᵢ✝ zₒ✝
+  wᵢ✝ wₒ✝ : Nat
+  w✝ : Net S wᵢ✝ wₒ✝
+  h₀✝ : xₒ✝ + yₒ✝ = zᵢ✝ + wᵢ✝
+  h₁✝ : xₒ✝ = zᵢ✝
+  h₂✝ : yₒ✝ = wᵢ✝
+  hₐ : EqN (cat h₂ a b) (cat h₀✝ (x✝.mix y✝) (z✝.mix w✝))
+  ⊢ Eqv S ⋯ (cat ⋯ d b) ((cat h₁✝ x✝ z✝).mix (cat h₂✝ y✝ w✝))
+  -/
+  repeat sorry
+
+def comm_cat₁_atom
+  {h₀ h₁ h₂ : _} (x : EqvB S h₀ b d) (y : EqvA S h₁ c e)
+  (hₐ : EqN (cat h₂ a b) c)
+  : Eqv S (by cases hₐ; simp [h₀] at h₁; simp [*]) (cat # a d) e := by sorry
+
+def comm_b
+  {i₀ o₀ : Nat} {a₀ : Net S i₀ o₀}
+  {i₁ o₁ : Nat} {a₁ : Net S i₁ o₁}
+  {h₀ h₁ : _} (x : EqvB S h₀ a₀ b) (y : EqvB S h₁ a₁ c)
+  (hₐ : EqN a₀ a₁)
+  : Eqv S (by cases hₐ; simp [h₀] at h₁; simp [*]) b c := by
+  induction x generalizing i₁ o₁ cᵢ cₒ with
+  | atom x =>
+    cases y with
+    | atom y => exact comm_atom_atom x y hₐ
+    | mix₀ y => exact .symm (comm_mix₀_atom y x (Eq.symm hₐ))
+    | mix₁ y => exact .symm (comm_mix₁_atom y x (Eq.symm hₐ))
+    | cat₀ y => exact .symm (comm_cat₀_atom y x (Eq.symm hₐ))
+    | cat₁ y => exact .symm (comm_cat₁_atom y x (Eq.symm hₐ))
   | mix₀ x ih =>
-    stop . cases y with
-    | mix_nil =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk (.apply .mix_nil .refl) (.apply x .refl)
-    | nil_mix => cases x <;> cases hₐ.congr mix₀_kind
+    cases y with
+    | atom y => exact comm_mix₀_atom x y hₐ
     | mix₀ y =>
       cases hₐ.congr unmix₀
       cases hₐ.congr unmix₁
@@ -112,39 +298,10 @@ def comm
       cases hₐ.congr unmix₀
       cases hₐ.congr unmix₁
       exact .mk (.apply (.mix₁ y) .refl) (.apply (.mix₀ x) .refl)
-    | mix_assoc =>
-      cases hₐ.congr unmix₁
-      cases x with
-      | mix_nil =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk .refl (.apply (.mix₁ .nil_mix) .refl)
-      | nil_mix =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        cases hₐ.congr unmix₁
-        exact .mk .refl (.apply .nil_mix .refl)
-      | mix_assoc =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk (.apply .mix_assoc (.apply (.mix₁ .mix_assoc) .refl)) (.apply .mix_assoc .refl)
-      | mix₀ y =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk (.apply .mix_assoc .refl) (.apply (.mix₀ y) .refl)
-      | mix₁ y =>
-        cases hₐ.congr unmix₀₀
-        cases hₐ.congr unmix₀₁
-        exact .mk (.apply .mix_assoc .refl) (.apply (.mix₁ (.mix₀ y)) .refl)
-      | _ => cases hₐ.congr mix₀_kind
     | _ => cases hₐ.congr kind
   | mix₁ x ih =>
-    stop . cases y with
-    | nil_mix =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk (.apply .nil_mix .refl) (.apply x .refl)
-    | mix_nil => cases x <;> cases hₐ.congr mix₁_kind
+    cases y with
+    | atom y => exact comm_mix₁_atom x y hₐ
     | mix₀ y =>
       cases hₐ.congr unmix₀
       cases hₐ.congr unmix₁
@@ -153,90 +310,30 @@ def comm
       cases hₐ.congr unmix₀
       cases hₐ.congr unmix₁
       exact .mix₁ (ih y rfl)
-    | mix_assoc =>
-      cases hₐ.congr unmix₀
-      cases hₐ.congr unmix₁
-      exact .mk (.apply .mix_assoc .refl) (.apply (.mix₁ (.mix₁ x)) .refl)
     | _ => cases hₐ.congr kind
-  | swap_swap | cup_swap | swap_cap =>
-    cases y
-    all_goals
-      try first
-      | . cases hₐ.congr kind
-      | . cases hₐ.congr cat₀_kind
-      | . cases hₐ.congr cat₁_kind
-      | . cases hₐ.congr uncat₀
-      | . cases hₐ.congr uncat₁
-      | . exact .mk .refl .refl
-    all_goals rename EqvA _ _ _ _ => y
-    cases y <;> cases hₐ.congr cat₀_kind
-    cases y <;> cases hₐ.congr cat₁_kind
-  | _ => sorry
-
-def _no_nil_eq {h : _} (hₐ : EqN a nil) : ¬ EqvA S h a b := by intro x; cases x <;> cases hₐ.congr kind
-def no_nil_eq {h : _} : ¬ EqvA S h nil a := _no_nil_eq rfl
-
--- set_option maxHeartbeats 2000000
-
--- def comm2
---   {i₀ o₀ : Nat} {a₀ : Net S i₀ o₀}
---   {i₁ o₁ : Nat} {a₁ : Net S i₁ o₁}
---   {h₀ h₁ : _} (x : EqvA S h₀ a₀ b) (y : EqvA S h₁ a₁ c)
---   (hₐ : EqN a₀ a₁)
---   : EqvN S (by cases hₐ; simp [h₀] at h₁; simp [*]) b c  := by
---   induction x generalizing i₁ o₁ cᵢ cₒ
---   case' mix₀ | mix₁ | cat₀ | cat₁ =>
---     rename_i x ih
---   all_goals
---     try cases y
---     all_goals
---       try first
---       | . cases hₐ.congr kind
---       | . cases hₐ.congr cat₀_kind
---       | . cases hₐ.congr cat₁_kind
---       | . cases hₐ.congr mix₀_kind
---       | . cases hₐ.congr mix₁_kind
---       | . try
---             cases hₐ.congr unmix₀
---             cases hₐ.congr unmix₁
---           try
---             cases hₐ.congr uncat₀
---             cases hₐ.congr uncat₁
---           exact .mk .refl .refl
---   save
-
---   case mix₀.nil_mix | nil_mix.mix₀ | mix₁.mix_nil | mix₀.nil_mix =>
---     . cases hₐ.congr unmix₀
---       cases hₐ.congr unmix₁
---       exfalso
---       apply no_nil_eq
---       assumption
-
-
---   stop
-
-
-  -- repeat sorry
-
-
--- -> -> -> <-   <-   ->   -> <-
--- -> -> -> <-   ->   <-   -> <-
-
-/-
-
-  a₀ a₁
-
-  Eqv a₀ a₁
-  Rd a₀ b
-  Rd a₁ c
-
-
-
-  Eqv a₀ a
-  Eqv a₁ a
-  Rd a b'
-  Rd a c'
-  Eqv b b'
-  Eqv c c'
-
--/
+  | cat₀ x ih =>
+    cases y with
+    | atom y => exact comm_cat₀_atom x y hₐ
+    | cat₀ y =>
+      cases hₐ.congr uncat₀
+      cases hₐ.congr uncat₁
+      exact .cat₀ (ih y rfl)
+    | cat₁ y =>
+      cases hₐ.congr uncat₀
+      cases hₐ.congr uncat₁
+      apply Eqv.mk (.apply (.cat₁ y) .refl) (.apply (.cat₀ x) .refl)
+      simp [*]
+    | _ => cases hₐ.congr kind
+  | cat₁ x ih =>
+    cases y with
+    | atom y => exact comm_cat₁_atom x y hₐ
+    | cat₀ y =>
+      cases hₐ.congr uncat₀
+      cases hₐ.congr uncat₁
+      apply Eqv.mk (.apply (.cat₀ y) .refl) (.apply (.cat₁ x) .refl)
+      simp [*]
+    | cat₁ y =>
+      cases hₐ.congr uncat₀
+      cases hₐ.congr uncat₁
+      exact .cat₁ (ih y rfl)
+    | _ => cases hₐ.congr kind

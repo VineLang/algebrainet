@@ -29,6 +29,11 @@ def wires : (n : Nat) -> Net S n n
   | 0 => nil
   | n + 1 => mix (wires n) wire
 
+def wires_ : (n : Nat) -> Net S n n
+  | 0 => nil
+  | 1 => wire
+  | n + 1 => mix (wires_ n) wire
+
 def twist₁ : (n : Nat) -> Net S (1 + n) (n + 1)
   | 0 => wire
   | n + 1 => (castₙ # (cat # (mix (twist₁ n) wire) (mix (wires n) swap)))
